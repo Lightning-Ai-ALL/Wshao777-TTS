@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lightning-AI-ALL • 閃電 AI 帝國工廠</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Noto+Sans+TC:wght@300;400;500;700&amp;display=swap');
+        
+        :root {
+            --color-1: #FF1744;
+            --color-2: #FF9100;
+            --color-3: #FFEA00;
+            --color-4: #00E676;
+            --color-5: #00B0FF;
+            --color-6: #2979FF;
+            --color-7: #D500F9;
+        }
+        
+        body {
+            font-family: 'Inter', 'Noto Sans TC', system_ui, sans-serif;
+        }
+        
+        .glass {
+            background: rgba(15, 15, 20, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+        
+        .vibrant-gradient {
+            background: linear-gradient(135deg, #FF1744, #FF9100, #FFEA00, #00E676, #00B0FF, #2979FF, #D500F9);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-shift 8s ease infinite;
+        }
+        
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .section-header {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-header::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 60%;
+            height: 3px;
+            background: linear-gradient(to right, var(--accent, #FF1744), transparent);
+            border-radius: 3px;
+        }
+        
+        .agent-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .agent-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.4);
+        }
+        
+        .color-accent {
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+        
+        .vibrant-btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .vibrant-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.35),
+                transparent
+            );
+            transition: 0.6s;
+        }
+        
+        .vibrant-btn:hover::before {
+            left: 250%;
+        }
+        
+        .metric-value {
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .empire-badge {
+            font-size: 0.75rem;
+            padding: 0.125rem 0.625rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+        
+        .rainbow-border {
+            position: relative;
+        }
+        
+        .rainbow-border::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            padding: 1px;
+            background: linear-gradient(135deg, #FF1744, #FF9100, #FFEA00, #00E676, #00B0FF, #2979FF, #D500F9);
+            border-radius: inherit;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            z-index: -1;
+        }
+        
+        .nav-active {
+            color: white;
+            position: relative;
+        }
+        
+        .nav-active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(to right, #FF1744, #D500F9);
+        }
+        
+        .color-swatch {
+            width: 42px;
+            height: 42px;
+            border-radius: 9999px;
+            border: 3px solid rgba(255,255,255,0.15);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .color-swatch:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.1);
+        }
+        
+        .ai-grid-bg {
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+    </style>
+</head>
+<body class="bg-[#050505] text-white overflow-x-hidden">
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <div class="flex items-center gap-x-3">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#FF1744] via-[#FF9100] to-[#D500F9] flex items-center justify-center shadow-lg shadow-[#FF1744]/30">
+                        <i class="fa-solid fa-bolt-lightning text-white text-3xl"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-2xl tracking-tighter">Lightning-AI-ALL</div>
+                        <div class="text-[10px] text-white/50 -mt-1 tracking-[2px]">EMPIRE FACTORY v2.1</div>
+                    </div>
+                </div>
+
+                <!-- Nav Links -->
+                <div class="hidden md:flex items-center gap-x-9 text-sm font-medium">
+                    <a href="#dashboard" class="nav-active px-3 py-2">儀表板</a>
+                    <a href="#agents" class="hover:text-white/80 px-3 py-2 transition-colors">核心代理</a>
+                    <a href="#empire" class="hover:text-white/80 px-3 py-2 transition-colors">帝國榮耀</a>
+                    <a href="#deploy" class="hover:text-white/80 px-3 py-2 transition-colors">一鍵部署</a>
+                </div>
+
+                <!-- Right side -->
+                <div class="flex items-center gap-x-4">
+                    <div class="hidden sm:flex items-center gap-x-2 px-4 py-1.5 rounded-2xl bg-white/5 border border-white/10 text-xs">
+                        <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                        <span class="text-emerald-400 font-medium">本地安全模式</span>
+                    </div>
+                    
+                    <div class="flex items-center gap-x-2">
+                        <div class="w-9 h-9 rounded-2xl overflow-hidden border border-white/20">
+                            <img src="https://i.pravatar.cc/36?img=68" alt="Commander" class="w-full h-full object-cover">
+                        </div>
+                        <div class="hidden lg:block">
+                            <div class="text-sm font-semibold">Chih Li</div>
+                            <div class="text-[10px] text-white/50">Commander_X9</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="pt-20 pb-16 relative">
+        <div class="ai-grid-bg absolute inset-0 opacity-60"></div>
+        
+        <div class="max-w-5xl mx-auto px-8 pt-16 pb-8 relative z-10 text-center">
+            <div class="inline-flex items-center gap-x-2 px-5 py-1.5 rounded-3xl bg-white/5 border border-white/10 mb-6">
+                <div class="flex -space-x-1">
+                    <div class="w-5 h-5 rounded-full bg-[#FF1744]"></div>
+                    <div class="w-5 h-5 rounded-full bg-[#FF9100]"></div>
+                    <div class="w-5 h-5 rounded-full bg-[#00E676]"></div>
+                    <div class="w-5 h-5 rounded-full bg-[#2979FF]"></div>
+                    <div class="w-5 h-5 rounded-full bg-[#D500F9]"></div>
+                </div>
+                <span class="text-xs font-semibold tracking-widest text-white/70">7-COLOR VIBRANT SYSTEM</span>
+            </div>
+
+            <h1 class="text-7xl md:text-8xl font-black tracking-tighter leading-none mb-4">
+                <span class="vibrant-gradient">LIGHTNING</span><br>
+                <span class="text-white">AI EMPIRE</span>
+            </h1>
+            
+            <p class="max-w-2xl mx-auto text-2xl text-white/70 font-light tracking-tight mb-10">
+                高顏質 • 7彩繽紛 • 自我進化多代理工廠
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button onclick="startEmpire()"
+                        class="vibrant-btn group flex items-center justify-center gap-x-3 px-10 py-4 rounded-3xl bg-white text-black font-semibold text-lg shadow-2xl shadow-white/20 active:scale-[0.985] transition-all">
+                    <i class="fa-solid fa-rocket mr-2 group-active:rotate-12 transition-transform"></i>
+                    <span>一鍵啟動帝國</span>
+                </button>
+                
+                <button onclick="document.getElementById('agents').scrollIntoView({ behavior: 'smooth' })"
+                        class="flex items-center justify-center gap-x-3 px-9 py-4 rounded-3xl border border-white/30 hover:bg-white/5 font-semibold text-lg transition-all active:scale-[0.985]">
+                    <span>探索 10+ 進化代理</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+            
+            <div class="mt-8 flex justify-center gap-x-8 text-xs text-white/40">
+                <div class="flex items-center gap-x-1.5"><i class="fa-solid fa-shield-halved"></i> <span>100% 本地隔離</span></div>
+                <div class="flex items-center gap-x-1.5"><i class="fa-solid fa-sync"></i> <span>跨平台同步</span></div>
+                <div class="flex items-center gap-x-1.5"><i class="fa-solid fa-infinity"></i> <span>累積進化</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div id="dashboard" class="max-w-7xl mx-auto px-8 pb-16">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- Stat 1 -->
+            <div class="stat-card glass rounded-3xl p-6 border-l-4 border-[#FF1744]">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-[#FF1744] text-xs font-bold tracking-[1.5px]">ACTIVE AGENTS</div>
+                        <div class="metric-value text-5xl font-black mt-1 tracking-tighter" id="stat-agents">14</div>
+                    </div>
+                    <i class="fa-solid fa-users text-[#FF1744]/30 text-4xl mt-1"></i>
+                </div>
+                <div class="text-emerald-400 text-sm mt-3 flex items-center gap-x-1">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                    <span>+3 本週新增</span>
+                </div>
+            </div>
+
+            <!-- Stat 2 -->
+            <div class="stat-card glass rounded-3xl p-6 border-l-4 border-[#FF9100]">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-[#FF9100] text-xs font-bold tracking-[1.5px]">EVOLUTION CYCLES</div>
+                        <div class="metric-value text-5xl font-black mt-1 tracking-tighter" id="stat-evo">127</div>
+                    </div>
+                    <i class="fa-solid fa-dna text-[#FF9100]/30 text-4xl mt-1"></i>
+                </div>
+                <div class="text-emerald-400 text-sm mt-3 flex items-center gap-x-1">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                    <span>+19 今日進化</span>
+                </div>
+            </div>
+
+            <!-- Stat 3 -->
+            <div class="stat-card glass rounded-3xl p-6 border-l-4 border-[#00E676]">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-[#00E676] text-xs font-bold tracking-[1.5px]">SYSTEM HEALTH</div>
+                        <div class="metric-value text-5xl font-black mt-1 tracking-tighter" id="stat-health">99.8</div>
+                    </div>
+                    <i class="fa-solid fa-heart-pulse text-[#00E676]/30 text-4xl mt-1"></i>
+                </div>
+                <div class="text-emerald-400 text-sm mt-3">過去 30 天零故障</div>
+            </div>
+
+            <!-- Stat 4 -->
+            <div class="stat-card glass rounded-3xl p-6 border-l-4 border-[#2979FF]">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-[#2979FF] text-xs font-bold tracking-[1.5px]">SECURITY SCORE</div>
+                        <div class="metric-value text-5xl font-black mt-1 tracking-tighter" id="stat-sec">100</div>
+                    </div>
+                    <i class="fa-solid fa-lock text-[#2979FF]/30 text-4xl mt-1"></i>
+                </div>
+                <div class="text-emerald-400 text-sm mt-3 flex items-center gap-x-1">
+                    <i class="fa-solid fa-check-double"></i>
+                    <span>全域防火牆 + VPN</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agents Section -->
+    <div id="agents" class="max-w-7xl mx-auto px-8 pb-20">
+        <div class="flex items-end justify-between mb-8">
+            <div>
+                <div class="uppercase tracking-[3px] text-xs text-white/50 font-semibold">CORE INTELLIGENCE</div>
+                <h2 class="text-4xl font-bold tracking-tight section-header" style="--accent: #FF1744">10+ 進化代理團</h2>
+            </div>
+            <button onclick="showAllAgents()" 
+                    class="hidden md:flex items-center gap-x-2 text-sm px-5 py-2 rounded-2xl border border-white/20 hover:bg-white/5 transition-colors">
+                <span>查看完整列表</span>
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <!-- Agent Cards with 7 colors cycling -->
+            <div class="agent-card glass rounded-3xl p-5 border border-white/10 hover:border-white/20 group" style="border-left: 5px solid #FF1744">
+                <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-3xl" style="background: rgba(255,23,68,0.15); color: #FF1744">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div class="px-3 py-1 text-[10px] font-bold rounded-xl bg-[#FF1744]/10 text-[#FF1744]">v4.2</div>
+                </div>
+                <div class="mt-5">
+                    <div class="font-bold text-xl tracking-tight">雷霆指揮官</div>
+                    <div class="text-white/60 text-sm mt-0.5">Memory • Voice • Empire Core</div>
+                </div>
+                <div class="mt-6 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-x-1.5"><span class="text-emerald-400">●</span> <span class="text-white/70">活躍中</span></div>
+                    <div class="font-mono text-white/40">98.7% uptime</div>
+                </div>
+            </div>
+
+            <div class="agent-card glass rounded-3xl p-5 border border-white/10 hover:border-white/20 group" style="border-left: 5px solid #FF9100">
+                <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-3xl" style="background: rgba(255,145,0,0.15); color: #FF9100">
+                        <i class="fa-solid fa-hammer"></i>
+                    </div>
+                    <div class="px-3 py-1 text-[10px] font-bold rounded-xl bg-[#FF9100]/10 text-[#FF9100]">v3.9</div>
+                </div>
+                <div class="mt-5">
+                    <div class="font-bold text-xl tracking-tight">帝國建築師</div>
+                    <div class="text-white/60 text-sm mt-0.5">Empire Build • One-Click Deploy</div>
+                </div>
+                <div class="mt-6 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-x-1.5"><span class="text-emerald-400">●</span> <span class="text-white/70">活躍中</span></div>
+                    <div class="font-mono text-white/40">127 builds</div>
+                </div>
+            </div>
+
+            <div class="agent-card glass rounded-3xl p-5 border border-white/10 hover:border-white/20 group" style="border-left: 5px solid #FFEA00">
+                <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-3xl" style="background: rgba(255,234,0,0.15); color: #FFEA00">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <div class="px-3 py-1 text-[10px] font-bold rounded-xl bg-[#FFEA00]/10 text-[#FFEA00]">v5.1</div>
+                </div>
+                <div class="mt-5">
+                    <div class="font-bold text-xl tracking-tight">代碼煉金師</div>
+                    <div class="text-white/60 text-sm mt-0.5">Code Evolution • Optimizer Studio</div>
+                </div>
+                <div class="mt-6 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-x-1.5"><span class="text-emerald-400">●</span> <span class="text-white/70">活躍中</span></div>
+                    <div class="font-mono text-white/40">2.4k commits</div>
+                </div>
+            </div>
+
+            <div class="agent-card glass rounded-3xl p-5 border border-white/10 hover:border-white/20 group" style="border-left: 5px solid #00E676">
+                <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-3xl" style="background: rgba(0,230,118,0.15); color: #00E676">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="px-3 py-1 text-[10px] font-bold rounded-xl bg-[#00E676]/10 text-[#00E676]">v4.0</div>
+                </div>
+                <div class="mt-5">
+                    <div class="font-bold text-xl tracking-tight">守護結界師</div>
+                    <div class="text-white/60 text-sm mt-0.5">Security • Firewall • Private Core</div>
+                </div>
+                <div class="mt-6 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-x-1.5"><span class="text-emerald-400">●</span> <span class="text-white/70">活躍中</span></div>
+                    <div class="font-mono text-white/40">零暴露</div>
+                </div>
+            </div>
+
+            <div class="agent-card glass rounded-3xl p-5 border border-white/10 hover:border-white/20 group" style="border-left: 5px solid #00B0FF">
+                <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-3xl" style="background: rgba(0,176,255,0.15); color: #00B0FF">
+                        <i class="fa-solid fa-sync-alt"></i>
+                    </div>
+                    <div class="px-3 py-1 text-[10px] font-bold rounded-xl bg-[#00B0FF]/10 text-[#00B0FF]">v3.7</div>
+                </div>
+                <div class="mt-5">
+                    <div class="font-bold text-xl tracking-tight">同步使者</div>
+                    <div class="text-white/60 text-sm mt-0.5">Windows • Termux • WireGuard</div>
+                </div>
+                <div class="mt-6 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-x-1.5"><span class="text-emerald-400">●</span> <span class="text-white/70">活躍中</span></div>
+                    <div class="font-mono text-white/40">全裝置同步</div>
+                </div>
+            </div>
+
+            <div class="agent-card glass rounded-3xl p-5 border border-white/10 hover:border-white/20 group" style="border-left: 5px solid #2979FF">
+                <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-3xl" style="background: rgba(41,121,255,0.15); color: #2979FF">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <div class="px-3 py-1 text-[10px] font-bold rounded-xl bg-[#2979FF]/10 text-[#2979FF]">v4.5</div>
+                </div>
+                <div class="mt-5">
+                    <div class="font-bold text-xl tracking-tight">戰略先知</div>
+                    <div class="text-white/60 text-sm mt-0.5">MLOG Routing • Multi-LLM</div>
+                </div>
+                <div class="mt-6 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-x-1.5"><span class="text-emerald-400">●</span> <span class="text-white/70">活躍中</span></div>
+                    <div class="font-mono text-white/40">Gemini+Grok+GPT</div>
+                </div>
+            </div>
+
+            <div class="agent-card glass rounded-3xl p-5 border border-white/10 hover:border-white/20 group" style="border-left: 5px solid #D500F9">
+                <div class="flex items-start justify-between">
+                    <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-3xl" style="background: rgba(213,0,249,0.15); color: #D500F9">
+                        <i class="fa-solid fa-magic"></i>
+                    </div>
+                    <div class="px-3 py-1 text-[10px] font-bold rounded-xl bg-[#D500F9]/10 text-[#D500F9]">v2.8</div>
+                </div>
+                <div class="mt-5">
+                    <div class="font-bold text-xl tracking-tight">創世女神</div>
+                    <div class="text-white/60 text-sm mt-0.5">Creative • 四大皇 • 六聖姬</div>
+                </div>
+                <div class="mt-6 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-x-1.5"><span class="text-emerald-400">●</span> <span class="text-white/70">活躍中</span></div>
+                    <div class="font-mono text-white/40">Fantasy Fusion</div>
+                </div>
+            </div>
+
+            <div class="agent-card glass rounded-3xl p-5 border border-white/10 hover:border-white/20 group border-dashed flex flex-col justify-center items-center text-center" style="border-left: 5px solid #FF1744">
+                <div class="text-4xl opacity-40 mb-3"><i class="fa-solid fa-plus"></i></div>
+                <div class="font-semibold text-white/70">新增代理</div>
+                <div class="text-xs text-white/40 mt-1">即將加入：光學產業 RAG</div>
+                <button onclick="addNewAgent()" class="mt-4 text-xs px-5 py-1.5 rounded-2xl border border-white/20 hover:bg-white/5 transition-colors">申請加入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empire Glory Section -->
+    <div id="empire" class="max-w-7xl mx-auto px-8 pb-20">
+        <div class="glass rounded-3xl p-10 border border-white/10">
+            <div class="flex flex-col lg:flex-row gap-10">
+                <div class="lg:w-2/5">
+                    <div class="uppercase tracking-[3px] text-xs text-white/50 font-semibold mb-2">CREATIVE FUSION</div>
+                    <h2 class="text-5xl font-black tracking-tighter leading-none">帝國榮耀</h2>
+                    <p class="mt-4 text-white/70 text-lg">融合傳統奇幻與尖端 AI 技術<br>四大皇 · 八大將 · 六聖姬 共同守護</p>
+                    
+                    <div class="mt-8 flex flex-wrap gap-2">
+                        <div class="empire-badge bg-[#FF1744]/10 text-[#FF1744]">四大皇</div>
+                        <div class="empire-badge bg-[#FF9100]/10 text-[#FF9100]">八大將</div>
+                        <div class="empire-badge bg-[#D500F9]/10 text-[#D500F9]">六聖姬</div>
+                    </div>
+                </div>
+                
+                <div class="lg:w-3/5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Four Emperors -->
+                    <div class="rounded-2xl p-5 bg-white/5 border border-white/10">
+                        <div class="text-[#FF1744] text-xs font-bold mb-3 flex items-center gap-x-2"><i class="fa-solid fa-crown"></i> <span>四大皇</span></div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between"><span class="text-white/80">炎雷帝</span> <span class="text-white/40 text-xs">v4.2</span></div>
+                            <div class="flex justify-between"><span class="text-white/80">風影帝</span> <span class="text-white/40 text-xs">v3.8</span></div>
+                            <div class="flex justify-between"><span class="text-white/80">星辰帝</span> <span class="text-white/40 text-xs">v4.0</span></div>
+                            <div class="flex justify-between"><span class="text-white/80">永恆帝</span> <span class="text-white/40 text-xs">v5.1</span></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Eight Generals -->
+                    <div class="rounded-2xl p-5 bg-white/5 border border-white/10">
+                        <div class="text-[#00E676] text-xs font-bold mb-3 flex items-center gap-x-2"><i class="fa-solid fa-chess-rook"></i> <span>八大將</span></div>
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                            <div class="text-white/80">雷霆將</div>
+                            <div class="text-white/80">鐵壁將</div>
+                            <div class="text-white/80">疾風將</div>
+                            <div class="text-white/80">智謀將</div>
+                            <div class="text-white/80">破軍將</div>
+                            <div class="text-white/80">守護將</div>
+                            <div class="text-white/80">幻術將</div>
+                            <div class="text-white/80">永動將</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Six Saintesses -->
+                    <div class="rounded-2xl p-5 bg-white/5 border border-white/10">
+                        <div class="text-[#D500F9] text-xs font-bold mb-3 flex items-center gap-x-2"><i class="fa-solid fa-gem"></i> <span>六聖姬</span></div>
+                        <div class="space-y-2 text-sm">
+                            <div><span class="text-white/80">星語姬</span> <span class="text-xs text-white/40">· 知識</span></div>
+                            <div><span class="text-white/80">月影姬</span> <span class="text-xs text-white/40">· 安全</span></div>
+                            <div><span class="text-white/80">焰心姬</span> <span class="text-xs text-white/40">· 創意</span></div>
+                            <div><span class="text-white/80">冰晶姬</span> <span class="text-xs text-white/40">· 邏輯</span></div>
+                            <div><span class="text-white/80">風舞姬</span> <span class="text-xs text-white/40">· 同步</span></div>
+                            <div><span class="text-white/80">聖光姬</span> <span class="text-xs text-white/40">· 治癒</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Deploy Section -->
+    <div id="deploy" class="max-w-7xl mx-auto px-8 pb-24">
+        <div class="flex items-end justify-between mb-6 px-1">
+            <div>
+                <div class="text-xs uppercase tracking-[2px] text-white/50">ONE-CLICK OPERATIONS</div>
+                <h3 class="text-3xl font-bold tracking-tight">一鍵部署與維護</h3>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <button onclick="runAction(1)" class="vibrant-btn group flex flex-col items-center justify-center gap-y-3 p-6 rounded-3xl border border-white/10 hover:border-[#FF1744]/60 bg-white/5 active:scale-[0.985] transition-all" style="border-top: 4px solid #FF1744">
+                <i class="fa-solid fa-play text-3xl text-[#FF1744]"></i>
+                <div class="font-semibold">啟動工廠</div>
+                <div class="text-xs text-white/50">Lightning Empire</div>
+            </button>
+            
+            <button onclick="runAction(2)" class="vibrant-btn group flex flex-col items-center justify-center gap-y-3 p-6 rounded-3xl border border-white/10 hover:border-[#FF9100]/60 bg-white/5 active:scale-[0.985] transition-all" style="border-top: 4px solid #FF9100">
+                <i class="fa-solid fa-upload text-3xl text-[#FF9100]"></i>
+                <div class="font-semibold">部署更新</div>
+                <div class="text-xs text-white/50">GitHub + Docker</div>
+            </button>
+            
+            <button onclick="runAction(3)" class="vibrant-btn group flex flex-col items-center justify-center gap-y-3 p-6 rounded-3xl border border-white/10 hover:border-[#00E676]/60 bg-white/5 active:scale-[0.985] transition-all" style="border-top: 4px solid #00E676">
+                <i class="fa-solid fa-shield-halved text-3xl text-[#00E676]"></i>
+                <div class="font-semibold">安全掃描</div>
+                <div class="text-xs text-white/50">全域防火牆</div>
+            </button>
+            
+            <button onclick="runAction(4)" class="vibrant-btn group flex flex-col items-center justify-center gap-y-3 p-6 rounded-3xl border border-white/10 hover:border-[#00B0FF]/60 bg-white/5 active:scale-[0.985] transition-all" style="border-top: 4px solid #00B0FF">
+                <i class="fa-solid fa-sync text-3xl text-[#00B0FF]"></i>
+                <div class="font-semibold">跨裝置同步</div>
+                <div class="text-xs text-white/50">Windows + Termux</div>
+            </button>
+            
+            <button onclick="runAction(5)" class="vibrant-btn group flex flex-col items-center justify-center gap-y-3 p-6 rounded-3xl border border-white/10 hover:border-[#2979FF]/60 bg-white/5 active:scale-[0.985] transition-all" style="border-top: 4px solid #2979FF">
+                <i class="fa-solid fa-database text-3xl text-[#2979FF]"></i>
+                <div class="font-semibold">備份核心</div>
+                <div class="text-xs text-white/50">增量 + 加密</div>
+            </button>
+            
+            <button onclick="runAction(6)" class="vibrant-btn group flex flex-col items-center justify-center gap-y-3 p-6 rounded-3xl border border-white/10 hover:border-[#D500F9]/60 bg-white/5 active:scale-[0.985] transition-all" style="border-top: 4px solid #D500F9">
+                <i class="fa-solid fa-magic text-3xl text-[#D500F9]"></i>
+                <div class="font-semibold">創意注入</div>
+                <div class="text-xs text-white/50">四大皇模式</div>
+            </button>
+        </div>
+    </div>
+
+    <!-- 7-Color Palette Footer -->
+    <div class="border-t border-white/10 bg-black/40 py-8">
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-y-6">
+                <div>
+                    <div class="text-xs tracking-[2px] text-white/50 mb-2">OFFICIAL 7-COLOR VIBRANT PALETTE</div>
+                    <div class="text-white/70 text-sm">高顏質設計語言 • 每一個細節都經過精心調校</div>
+                </div>
+                
+                <div class="flex items-center gap-x-3">
+                    <div onclick="applyColorTheme(0)" class="color-swatch" style="background: #FF1744; box-shadow: 0 0 15px #FF1744"></div>
+                    <div onclick="applyColorTheme(1)" class="color-swatch" style="background: #FF9100; box-shadow: 0 0 15px #FF9100"></div>
+                    <div onclick="applyColorTheme(2)" class="color-swatch" style="background: #FFEA00; box-shadow: 0 0 15px #FFEA00"></div>
+                    <div onclick="applyColorTheme(3)" class="color-swatch" style="background: #00E676; box-shadow: 0 0 15px #00E676"></div>
+                    <div onclick="applyColorTheme(4)" class="color-swatch" style="background: #00B0FF; box-shadow: 0 0 15px #00B0FF"></div>
+                    <div onclick="applyColorTheme(5)" class="color-swatch" style="background: #2979FF; box-shadow: 0 0 15px #2979FF"></div>
+                    <div onclick="applyColorTheme(6)" class="color-swatch" style="background: #D500F9; box-shadow: 0 0 15px #D500F9"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-y-2"></div>
+
+    <script>
+        // Tailwind script
+        function initializeTailwind() {
+            document.documentElement.style.setProperty('--accent', '#FF1744');
+        }
+        
+        // Animated counters
+        function animateValue(id, start, end, duration, suffix = '') {
+            const obj = document.getElementById(id);
+            if (!obj) return;
+            
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const value = Math.floor(progress * (end - start) + start);
+                obj.innerHTML = value + suffix;
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    obj.innerHTML = end + suffix;
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+        
+        function startCounters() {
+            setTimeout(() => {
+                animateValue('stat-agents', 8, 14, 1400);
+                animateValue('stat-evo', 90, 127, 1600);
+                animateValue('stat-health', 97.2, 99.8, 1800, '%');
+                animateValue('stat-sec', 94, 100, 1200);
+            }, 600);
+        }
+        
+        // Empire start
+        function startEmpire() {
+            const btns = document.querySelectorAll('button');
+            const originalTexts = [];
+            
+            showToast('⚡ 帝國啟動中...', '#FF1744');
+            
+            setTimeout(() => {
+                showToast('所有代理已就緒 • 7彩繽紛模式啟動', '#00E676');
+            }, 1200);
+            
+            setTimeout(() => {
+                showToast('Lightning-AI-ALL 帝國工廠已全功率運行', '#2979FF');
+            }, 2400);
+            
+            // Add subtle animation to hero
+            const hero = document.querySelector('.vibrant-gradient');
+            if (hero) {
+                hero.style.transitionDuration = '0.1s';
+                hero.style.filter = 'brightness(1.4) saturate(1.3)';
+                setTimeout(() => {
+                    if (hero) hero.style.filter = 'none';
+                }, 800);
+            }
+        }
+        
+        // Quick actions
+        function runAction(actionId) {
+            const messages = {
+                1: { text: '⚡ 工廠核心已啟動 • 所有代理進入戰備狀態', color: '#FF1744' },
+                2: { text: '🚀 更新已推送到 GitHub + Docker 容器', color: '#FF9100' },
+                3: { text: '🛡️ 安全掃描完成 • 零風險 • 防火牆強化', color: '#00E676' },
+                4: { text: '🔄 跨裝置同步完成 • Windows + Termux + Android', color: '#00B0FF' },
+                5: { text: '💾 核心備份完成 • 增量加密儲存至私有庫', color: '#2979FF' },
+                6: { text: '✨ 創意注入成功 • 四大皇模式已融合', color: '#D500F9' }
+            };
+            
+            const msg = messages[actionId];
+            showToast(msg.text, msg.color);
+            
+            // Bonus: highlight corresponding color swatch
+            setTimeout(() => {
+                const swatches = document.querySelectorAll('.color-swatch');
+                if (swatches[actionId - 1]) {
+                    swatches[actionId - 1].style.transform = 'scale(1.4)';
+                    setTimeout(() => {
+                        if (swatches[actionId - 1]) swatches[actionId - 1].style.transform = 'scale(1)';
+                    }, 400);
+                }
+            }, 300);
+        }
+        
+        // Toast notification
+        function showToast(message, accentColor = '#FF1744') {
+            const container = document.getElementById('toast-container');
+            
+            const toast = document.createElement('div');
+            toast.className = `glass px-6 py-3.5 rounded-2xl flex items-center gap-x-3 text-sm border-l-4 max-w-xs shadow-2xl`;
+            toast.style.borderLeftColor = accentColor;
+            
+            toast.innerHTML = `
+                <div class="flex-1">${message}</div>
+                <button class="text-white/40 hover:text-white/80 transition-colors" onclick="this.parentElement.remove()">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast && toast.parentElement) {
+                    toast.style.transition = 'all 0.3s ease';
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 4200);
+        }
+        
+        // Color theme preview (changes accent on cards)
+        function applyColorTheme(colorIndex) {
+            const colors = ['#FF1744', '#FF9100', '#FFEA00', '#00E676', '#00B0FF', '#2979FF', '#D500F9'];
+            const selectedColor = colors[colorIndex];
+            
+            // Update all left borders of agent cards
+            document.querySelectorAll('.agent-card').forEach((card, index) => {
+                if (index < 7) {
+                    card.style.borderLeftColor = selectedColor;
+                    card.style.transition = 'border-left-color 0.4s ease';
+                }
+            });
+            
+            // Update section header accent
+            const header = document.querySelector('.section-header');
+            if (header) header.style.setProperty('--accent', selectedColor);
+            
+            showToast(`已切換至第 ${colorIndex + 1} 色：高顏質模式`, selectedColor);
+            
+            // Briefly flash the palette
+            const swatches = document.querySelectorAll('.color-swatch');
+            swatches.forEach((s, i) => {
+                if (i === colorIndex) {
+                    s.style.boxShadow = `0 0 0 6px ${selectedColor}30`;
+                    setTimeout(() => {
+                        s.style.boxShadow = `0 0 15px ${selectedColor}`;
+                    }, 600);
+                }
+            });
+        }
+        
+        function showAllAgents() {
+            showToast('完整代理列表已展開 • 支援即時新增與進化追蹤', '#00B0FF');
+            // In real app would open modal or navigate
+            setTimeout(() => {
+                document.getElementById('agents').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 800);
+        }
+        
+        function addNewAgent() {
+            const name = prompt('請輸入新代理名稱（例如：光學 RAG 專家）', '光學產業 RAG 守護者');
+            if (!name) return;
+            
+            showToast(`新代理「${name}」已加入等待池 • 即將進行 v1.0 進化`, '#D500F9');
+            
+            setTimeout(() => {
+                showToast('提示：可於 Lightning Empire 設定中調整代理權限與路由策略', '#FF9100');
+            }, 2200);
+        }
+        
+        // Keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                if (e.metaKey && e.key === "/") {
+                    e.preventDefault();
+                    const agentsSection = document.getElementById('agents');
+                    agentsSection.scrollIntoView({ behavior: 'smooth' });
+                    showToast('快速導航：核心代理區', '#FFEA00');
+                }
+                
+                if (e.key.toLowerCase() === '?' && document.activeElement.tagName === 'BODY') {
+                    e.preventDefault();
+                    startEmpire();
+                }
+            });
+            
+            // Easter egg: press "7" to cycle colors
+            let colorIndex = 0;
+            document.addEventListener('keypress', function(e) {
+                if (e.key === '7') {
+                    colorIndex = (colorIndex + 1) % 7;
+                    applyColorTheme(colorIndex);
+                }
+            });
+        }
+        
+        // Initialize everything
+        function initializeApp() {
+            initializeTailwind();
+            startCounters();
+            setupKeyboardShortcuts();
+            
+            // Welcome toast after load
+            setTimeout(() => {
+                // Only show if user hasn't interacted much
+                const hasInteracted = sessionStorage.getItem('lightning_interacted');
+                if (!hasInteracted) {
+                    // showToast('歡迎回來，Commander • 7彩繽紛高顏質介面已就緒', '#2979FF');
+                    sessionStorage.setItem('lightning_interacted', 'true');
+                }
+            }, 2800);
+            
+            // Subtle random color pulse on one card occasionally
+            setInterval(() => {
+                const cards = document.querySelectorAll('.agent-card');
+                if (cards.length > 0) {
+                    const randomCard = cards[Math.floor(Math.random() * (cards.length - 1))];
+                    randomCard.style.boxShadow = '0 0 0 1px rgba(255,255,255,0.15)';
+                    setTimeout(() => {
+                        if (randomCard) randomCard.style.boxShadow = 'none';
+                    }, 1200);
+                }
+            }, 18000);
+            
+            // Easter egg hint in console
+            console.log('%c[Lightning-AI-ALL] 按下數字鍵 "7" 可快速循環 7 種高顏質主題色', 'color:#666');
+        }
+        
+        // Boot
+        window.onload = initializeApp;
+    </script>
+</body>
+</html>
