@@ -1,0 +1,17 @@
+# Manage-Bots.ps1
+$registry = Get-Content "D:\Lightning-AI-ALL\config\bot_registry.json" | ConvertFrom-Json
+
+Write-Host "🛡️ Gatekeep Bots: $($registry.layers.gatekeep.Count)" -ForegroundColor Cyan
+Write-Host "🧰 Tool Bots: $($registry.layers.tools.Count)" -ForegroundColor Cyan
+
+Write-Host "`n=== Gatekeep 排程狀態 ===" -ForegroundColor Yellow
+$registry.layers.gatekeep | ForEach-Object {
+    if ($_.schedule) {
+        $task = Get-ScheduledTask -TaskName $_.schedule -ErrorAction SilentlyContinue
+        $state = if ($task) { $task.State } else { "未註冊" }
+        Write-Host "$($_.id) : $state"
+    }
+}
+
+Write-Host "`n=== 工具 Bot 快速索引 ===" -ForegroundColor Yellow
+$registry.layers.tools | Select-Object id, name, type | Format-Table -AutoSize
