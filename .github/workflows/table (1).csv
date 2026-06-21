@@ -1,0 +1,9 @@
+﻿編號,模組名稱,功能領域,主要資料夾
+1️⃣,AI_Bodhisattva_Core,核心／Orchestrator,"orchestrator, scheduler, runner"
+2️⃣,AI_Goddess_Wisdom,推理／Decision Engine,"reasoning_engine, decision_models, memory"
+3️⃣,AI_Goddess_Data,資料／ETL／Storage,"data_inbox, data_cleaning, databases"
+4️⃣,AI_Goddess_Compute,運算／GPU／Task,"workers, task_queue, monitoring"
+5️⃣,AI_Goddess_Creativity,生成／LLM／Content Engine,"llm_engine, video_gen, image_gen"
+6️⃣,AI_Goddess_Judgement,規則／Risk／Policy,"policy_engine, guardrails, validation"
+7️⃣,AI_Goddess_Safety,安全／Sandbox／Audit,"security_engine, audit_logs, incident_response"
+8️⃣,AI_Goddess_Connection,通訊／API／Integrations,"api_gateway, external_apis, communication"
