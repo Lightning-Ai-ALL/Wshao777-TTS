@@ -1,5 +1,30 @@
 # AI風力發電的智慧革命：新聞主播林曉薇專題報導
-
+lightning_control_tower/
+├── main.py                 # FastAPI 入口，啟動服務
+├── requirements.txt        # 依賴套件
+├── .env.example            # 環境變數範本
+├── core/
+│   ├── __init__.py
+│   ├── ledger.py           # 帳本核心：寫入事件、查詢餘額
+│   ├── kpi_engine.py       # KPI 計算引擎 (含 stub)
+│   ├── reward_engine.py    # 分潤規則引擎 (rule-based)
+│   └── event_bus.py        # 簡單的事件匯流排 (發送/訂閱)
+├── agents/
+│   ├── __init__.py
+│   ├── registry.py         # Agent 註冊與管理
+│   └── base_agent.py       # Agent 基底類別
+├── db/
+│   ├── __init__.py
+│   ├── models.py           # SQLAlchemy ORM 模型
+│   └── schema.sql          # 純 SQL 建表腳本 (PostgreSQL/MySQL)
+├── api/
+│   ├── __init__.py
+│   ├── ledger_api.py       # /api/ledger 端點
+│   ├── agent_api.py        # /api/agents 端點
+│   └── dashboard_api.py    # /api/dashboard 端點 (未來串 UI)
+└── scripts/
+    ├── init_db.py          # 初始化資料庫
+    └── seed_agents.py      # 填入初始 1000 組 AI/BOT 資料
 **專題類型**：能源科技深度報導 / 新聞主播視角  
 **主播主角**：林曉薇（Lin Xiaowei）——資深能源與科技新聞主播  
 **報導日期**：2026年6月21日  
