@@ -1,0 +1,13 @@
+-- 範例資料（針對不同角色）
+INSERT INTO kpi_definitions (name, description, target_value, weight, applicable_roles) VALUES
+('data_accuracy', '演練數據準確度 (%)', 95.0, 0.6, '數據管理'),
+('task_volume', '任務完成數量 (月)', 100.0, 0.3, '技術核心,數據管理,支援運營'),
+('audit_completion', '審計報告完成率 (%)', 100.0, 0.5, '治理安全'),
+('dashboard_uptime', '儀表板可用性 (%)', 99.9, 0.4, '支援運營'),
+('system_stability', '系統穩定度 (%)', 99.9, 0.7, '技術核心');
+
+元件 狀態 說明
+CSV (1000 Agents) ✅ 已準備 基礎軍團名冊，含名稱、能力、角色、佔比
+資料庫 Schema ✅ 已提供 4 張表完整設計，含外鍵與索引
+匯入腳本 ✅ 已提供 用 pandas 一鍵匯入 SQLite / PostgreSQL
+FastAPI 查詢與記錄 ✅ 已提供 可立即使用的 API 端點
