@@ -1,0 +1,30 @@
+端點 方法 功能 請求體/參數 回應格式
+/agents/load-csv POST 從 CSV 檔案載入 Agent 資料（覆蓋或新增） file (multipart/form-data) + mode (replace/append) { "status": "success", "loaded": 1000, "mode": "replace" }
+/agents/start-all POST 啟動所有狀態為 ACTIVE_AGENT 的 Agents（更新狀態或觸發任務） 無 { "status": "started", "total": 985, "failed": 0 }
+/agents GET 分頁查詢所有 Agents skip (default 0), limit (default 100), role (optional filter) { "total": 1000, "items": [ { "id", "name", "role", "capability_tags", "env", "status", "base_share_ratio" } ] }
+/agents/{agent_id} GET 查詢特定 Agent 詳細資訊 agent_id (path) { "id", "name", "role", "capability_tags", "capability_score", "env", "status", "base_share_ratio", "total_balance" }
+/ledger/realtime GET 即時收益匯總（可依角色或 Agent 篩選） role (optional), agent_id (optional) { "total_revenue": 12345.67, "items": [ { "agent_id", "name", "final_share" } ] }
+/kpi/dashboard GET 取得整體 KPI 摘要（本季平均達成率、最高/最低等） period (optional, default current quarter) { "period": "2026-Q2", "avg_kpi": 1.02, "top_agent": {...}, "bottom_agent": {...}, "kpi_distribution": {...} }
+
+元件 狀態 說明
+KPI 定義表 ✅ 已設計 可配置的目標值與權重
+KPI 評分引擎 ✅ 已提供 根據角色與實際值計算綜合分數
+record_event 整合 ✅ 已改造 即時套用 KPI 分數計算最終分潤
+數據聚合建議 ✅ 已提供 如何取得實際 KPI 值的策略
+
+from apscheduler.schedulers.background import BackgroundScheduler
+
+def schedule_agent_tasks():
+    # 1. 啟動各 Agent 執行任務
+    # 2. 任務完成後，呼叫 ledger.record_event 寫入事件
+    pass
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(schedule_agent_tasks, 'interval', minutes=60)
+scheduler.start()
+
+角色 KPI 名稱 資料來源 獲取方式
+數據管理組 data_accuracy 演練檔案比對結果 由 ETL 流程計算後寫入某張表
+治理安全組 audit_completion 已完成審計報告 / 總應完成數 從審計系統匯總
+支援運營組 dashboard_uptime 監控系統（如 Prometheus） 透過 API 查詢
+技術核心組 system_stability 系統日誌中的錯誤率 從 ELK 或 Sentry 計算
