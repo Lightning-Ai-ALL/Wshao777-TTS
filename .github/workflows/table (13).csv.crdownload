@@ -4,3 +4,32 @@
 投資 / 資源組,3–4 人,提供硬體、電力、伺服器資金,10% 投資方分配，依出資比例分
 治理 / 安全組,2–3 人,DAO 審計、安全 Vault、合規檢查,20% 中的 治理份額，每人約 1%
 支援 / 運營組,2–3 人,日常維護、儀表板呈現、使用者支援,20% 中的 支援份額，每人約 0.5–1%
+
+import pandas as pd
+import sqlite3
+
+# 讀取 CSV
+df = pd.read_csv("lightning_ledger_1000_agents.csv")
+
+# 重新命名欄位以對應資料表
+df.rename(columns={
+    "Name": "name",
+    "Capability": "capability_tags",
+    "Role": "role",
+    "Share(%)": "base_share_ratio"
+}, inplace=True)
+
+# 連接資料庫 (若使用 PostgreSQL，改用 psycopg2 連接)
+conn = sqlite3.connect("ledger.db")
+cursor = conn.cursor()
+
+# 逐筆插入 agents 表 (避免重複)
+for _, row in df.iterrows():
+    cursor.execute("""
+        INSERT OR IGNORE INTO agents (name, capability_tags, role, base_share_ratio)
+        VALUES (?, ?, ?, ?)
+    """, (row['name'], row['capability_tags'], row['role'], row['base_share_ratio']))
+
+conn.commit()
+conn.close()
+print("✅ Agents 匯入完成！")
