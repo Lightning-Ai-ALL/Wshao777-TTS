@@ -1,0 +1,389 @@
+// 讀取最新播報狀態 (Dashboard 核心)
+async function loadLatestBroadcast() {
+    try {
+        const response = await fetch('/storage/latest_broadcast.json');
+        if (!response.ok) throw new Error('檔案不存在');
+        const data = await response.json();
+
+        // 更新狀態
+        document.getElementById('broadcast-status').innerText = data.status === 'completed' ? '✅ 已就緒' : '⏳ 執行中';
+        document.getElementById('broadcast-time').innerText = data.timestamp || '--';
+        document.getElementById('broadcast-headline').innerText = data.headlines?.join('、') || '無標題';
+        document.getElementById('broadcast-script').innerText = data.script?.slice(0, 150) + '...' || '';
+        
+        // 音檔播放
+        const audioPath = data.audio_path;
+        if (audioPath) {
+            document.getElementById('audio-path').innerText = audioPath;
+            window.currentAudioPath = audioPath;
+            document.getElementById('play-btn').disabled = false;
+        }
+    } catch (error) {
+        document.getElementById('broadcast-headline').innerText = '⚠️ 尚無播報資料，請執行 Pipeline';
+        document.getElementById('broadcast-status').innerText = '❌ 無資料';
+    }
+}
+
+// 播放音檔
+function playAudio() {
+    if (window.currentAudioPath) {
+        const audio = new Audio(window.currentAudioPath);
+        audio.play().catch(e => alert('無法播放音檔，請確認路徑正確'));
+    } else {
+        alert('尚無音檔可播放');
+    }
+}
+
+// 初始化載入，並每 30 秒更新
+loadLatestBroadcast();
+setInterval(loadLatestBroadcast, 30000);
+完全同意。你這次給的不是「討論」，而是最終執行決議。這正是從「規劃」跨入「交付」所需要的紀律。
+
+現在，我不會再增加任何新功能、新架構或新概念。我直接根據你的 Lightning AI News MVP v1.0 執行決議，提供你 Day 1 到 Day 5 可立即執行的具體檔案與指令，讓你能照表操課，把勾打滿。
+
+---
+
+🗂️ 你現在需要的檔案結構（與 Day 1-5 對應）
+
+```text
+lightning_ai_news/               # 專案根目錄
+├── agents/
+│   ├── news_bot.py              # Day 1 ✅ (已提供)
+│   ├── anchor_bot.py            # Day 2 ✅ (已提供)
+│   └── tts_bot.py               # Day 3 ✅ (已提供)
+├── routes/
+│   └── news.py                  # Day 4 部分 (已提供 API 路由)
+├── storage/
+│   ├── audio/                   # TTS 音檔輸出
+│   └── latest_broadcast.json    # Pipeline 結果輸出
+├── run_news_pipeline.py         # Day 4 ✅ (核心，需補上完整錯誤處理)
+├── app.py                       # Day 4 部分 (FastAPI 主程式)
+├── index.html                   # Day 5 (你已擁有，需補上狀態串接 JS)
+└── requirements.txt             # 依賴清單
+```
+
+---
+
+🧩 Day 4 核心：run_news_pipeline.py（補上錯誤處理與完整日誌）
+
+這是你一鍵執行的關鍵，必須能穩定回報成功或失敗。
+
+```python
+# run_news_pipeline.py
+import asyncio
+import json
+import sys
+import traceback
+from datetime import datetime
+from pathlib import Path
+
+# 確保 agents 目錄在路徑中
+sys.path.append(str(Path(__file__).parent))
+
+from agents.news_bot import NewsBot
+from agents.anchor_bot import AnchorBot
+from agents.tts_bot import TTSBot
+
+async def main():
+    print(f"\n{'='*50}")
+    print(f"🚀 Lightning AI News Pipeline 啟動")
+    print(f"🕒 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"{'='*50}\n")
+
+    results = {
+        "status": "pending",
+        "steps": {},
+        "timestamp": datetime.now().isoformat(),
+        "headlines": [],
+        "script": "",
+        "audio_path": "",
+        "error": None
+    }
+
+    try:
+        # --- Step 1: NewsBot ---
+        print("📰 [1/4] NewsBot: 抓取新聞...")
+        news_bot = NewsBot()
+        news_list = news_bot.fetch_latest(limit=3)
+        results["steps"]["news_fetch"] = {"count": len(news_list), "status": "ok"}
+        print(f"   ✅ 抓到 {len(news_list)} 則新聞")
+        for i, item in enumerate(news_list, 1):
+            print(f"      {i}. {item['headline'][:50]}...")
+
+        # --- Step 2: AnchorBot ---
+        print("\n✍️ [2/4] AnchorBot: 生成主播稿...")
+        anchor_bot = AnchorBot()
+        script = anchor_bot.generate_script(news_list)
+        results["steps"]["script_gen"] = {"length": len(script), "status": "ok"}
+        print(f"   ✅ 主播稿長度: {len(script)} 字")
+        print(f"   📝 開頭: {script[:60]}...")
+
+        # --- Step 3: TTSBot ---
+        print("\n🗣️ [3/4] TTSBot: 語音合成...")
+        tts_bot = TTSBot()
+        audio_path = tts_bot.sync_speak(script)
+        results["steps"]["tts_gen"] = {"path": audio_path, "status": "ok"}
+        print(f"   ✅ 音檔已儲存: {audio_path}")
+
+        # --- Step 4: 儲存結果 ---
+        print("\n💾 [4/4] 儲存結果...")
+        results["status"] = "completed"
+        results["headlines"] = [n["headline"] for n in news_list]
+        results["script"] = script
+        results["audio_path"] = audio_path
+
+        output_file = Path("storage/latest_broadcast.json")
+        output_file.parent.mkdir(exist_ok=True)
+        with open(output_file, "w", encoding="utf-8") as f:
+            json.dump(results, f, ensure_ascii=False, indent=2)
+        print(f"   ✅ 結果儲存至: {output_file}")
+
+        print(f"\n{'='*50}")
+        print("✅ Pipeline 全部完成！")
+        print(f"🎧 收聽播報: {audio_path}")
+        print(f"{'='*50}\n")
+        return 0
+
+    except Exception as e:
+        print(f"\n❌ Pipeline 失敗: {str(e)}")
+        traceback.print_exc()
+        results["status"] = "failed"
+        results["error"] = str(e)
+        # 仍儲存錯誤狀態
+        output_file = Path("storage/latest_broadcast.json")
+        output_file.parent.mkdir(exist_ok=True)
+        with open(output_file, "w", encoding="utf-8") as f:
+            json.dump(results, f, ensure_ascii=False, indent=2)
+        return 1
+
+if __name__ == "__main__":
+    exit_code = asyncio.run(main())
+    sys.exit(exit_code)
+```
+
+---
+
+📊 Day 5: Dashboard 狀態串接（補上 index.html 的 loadLatestBroadcast）
+
+在你的 index.html 中，加入這個 JavaScript 區塊（放在既有 <script> 中），讓它讀取 storage/latest_broadcast.json 並顯示。
+
+```javascript
+// 讀取最新播報狀態 (Dashboard 核心)
+async function loadLatestBroadcast() {
+    try {
+        const response = await fetch('/storage/latest_broadcast.json');
+        if (!response.ok) throw new Error('檔案不存在');
+        const data = await response.json();
+
+        // 更新狀態
+        document.getElementById('broadcast-status').innerText = data.status === 'completed' ? '✅ 已就緒' : '⏳ 執行中';
+        document.getElementById('broadcast-time').innerText = data.timestamp || '--';
+        document.getElementById('broadcast-headline').innerText = data.headlines?.join('、') || '無標題';
+        document.getElementById('broadcast-script').innerText = data.script?.slice(0, 150) + '...' || '';
+        
+        // 音檔播放
+        const audioPath = data.audio_path;
+        if (audioPath) {
+            document.getElementById('audio-path').innerText = audioPath;
+            window.currentAudioPath = audioPath;
+            document.getElementById('play-btn').disabled = false;
+        }
+    } catch (error) {
+        document.getElementById('broadcast-headline').innerText = '⚠️ 尚無播報資料，請執行 Pipeline';
+        document.getElementById('broadcast-status').innerText = '❌ 無資料';
+    }
+}
+
+// 播放音檔
+function playAudio() {
+    if (window.currentAudioPath) {
+        const audio = new Audio(window.currentAudioPath);
+        audio.play().catch(e => alert('無法播放音檔，請確認路徑正確'));
+    } else {
+        alert('尚無音檔可播放');
+    }
+}
+
+// 初始化載入，並每 30 秒更新
+loadLatestBroadcast();
+setInterval(loadLatestBroadcast, 30000);
+```
+
+---
+
+✅ 你的驗收清單（請逐項執行並打勾）
+
+天數 任務 對應操作 狀態
+Day 1 NewsBot 抓取 python agents/news_bot.py ☐
+Day 2 AnchorBot 生成 python agents/anchor_bot.py ☐
+Day 3 TTSBot 合成 python agents/tts_bot.py ☐
+Day 4 Pipeline 一鍵執行 python run_news_pipeline.py ☐
+Day 5 Dashboard 顯示 開啟 index.html，查看播報狀態 ☐
+
+---
+
+🏁 當五項全部打勾後
+
+你將擁有 Lightning AI News MVP v1.0，其狀態為 READY FOR DEMO。屆時，請錄製 1 分鐘 Demo 影片，並更新 GitHub README，然後才進行新聞稿發布與企業接洽。
+
+執行原則：少開會、少改架構、少增加功能。多執行、多測試、多驗證。
+
+如果在執行任何步驟中遇到技術問題（例如：模組找不到、API Key 失效、音檔無法播放），請直接告訴我錯誤訊息，我會提供精確的除錯步驟。我們現在只專注在 把勾打滿。開始吧！✅
+收到。這是最後一次開發會議。你的決議非常明確：鎖定範圍、停止討論、開始執行。我完全同意你的 五項執行原則，現在就按照你的決議，產出最終的執行清單與驗收標準，不再新增任何功能。
+
+---
+
+🚀 Lightning AI News MVP v1.0 — 最終執行決議書
+
+日期： 2026-06-22
+狀態： 核准執行，不再變更範圍
+
+---
+
+一、專案目標（範圍鎖定）
+
+建立一個可穩定運行的 AI 新聞主播 MVP，完整涵蓋以下四個步驟，並提供可視化儀表板。
+
+```text
+NewsBot (抓取新聞)
+    ↓
+AnchorBot (生成主播稿)
+    ↓
+TTSBot (語音合成)
+    ↓
+Dashboard (顯示狀態與結果)
+```
+
+---
+
+二、本階段「不開發」清單（明確排除）
+
+以下項目全部延後至 MVP 驗證完成後再評估：
+
+· ❌ 虛擬人 Avatar
+· ❌ 股票分析 Bot
+· ❌ WeatherBot
+· ❌ VideoBot
+· ❌ 區塊鏈模組
+· ❌ 173 項專利管理系統
+· ❌ 商業分潤系統
+· ❌ 國際授權平台
+· ❌ 任何其他新功能或新 Agent
+
+理由： 先完成 MVP 驗證，再談擴充。
+
+---
+
+三、執行日誌與交付清單（按天）
+
+天數 任務 對應檔案 驗收標準
+Day 1 建立 NewsBot，完成 RSS 新聞抓取，並儲存為 JSON。 agents/news_bot.py 執行 python agents/news_bot.py 能輸出至少 1 則新聞標題與摘要。
+Day 2 建立 AnchorBot，串接 Gemini API (或 DeepSeek)，能將新聞轉為主播稿。 agents/anchor_bot.py 輸入新聞 JSON，能產出至少 100 字的中文播報稿。
+Day 3 建立 TTSBot，能將主播稿轉為語音檔案 (MP3/WAV)。 agents/tts_bot.py 輸入文字，能在 storage/audio/ 目錄下生成音檔。
+Day 4 建立 run_news_pipeline.py，一鍵串聯 Day 1–3 全部流程。 run_news_pipeline.py 執行後能自動完成「抓取 → 撰稿 → 合成」，無報錯。
+Day 5 Dashboard 整合：在 index.html 顯示最新新聞、主播稿、音檔播放按鈕與執行狀態。 index.html (已提供) 開啟網頁能看到最新播報狀態，並能播放音檔。
+
+---
+
+四、唯一驗收標準 (必須全部打勾)
+
+# 驗收項目 狀態 (勾選)
+1 自動抓取真實新聞 ☐
+2 自動生成主播稿 ☐
+3 自動生成語音 ☐
+4 Dashboard 顯示結果 ☐
+5 一鍵執行整個 Pipeline (run_news_pipeline.py) 成功 ☐
+
+當以上 5 項全部打勾，即代表 Lightning AI News MVP v1.0 正式完成，狀態為 READY FOR DEMO。
+
+---
+
+五、對外發布條件 (嚴格限制)
+
+只有當以下條件「全部成立」時，才可進行對外發布：
+
+· GitHub 專案可公開展示 (含完整 README)
+· Demo 可在本地或伺服器上穩定執行
+· README 包含安裝步驟、API 文件與架構圖
+· API 文件 (Swagger UI) 可正常存取
+· Dashboard 可操作並顯示即時狀態
+
+在此之前的任何對外溝通 (包含媒體、企業、合作夥伴)，僅限於「內部測試中」或「開發中專案」，不得宣稱已正式完成。
+
+---
+
+六、執行原則 (務必遵守)
+
+```text
+✅ 少開會
+✅ 少改架構
+✅ 少增加功能
+✅ 多執行
+✅ 多測試
+✅ 多驗證
+```
+
+---
+
+七、你現在立刻可以做的事 (從此刻開始)
+
+1. 打開終端機，切換到你的 lightning_ai_news/ 專案目錄。
+2. 執行 Day 1 任務：建立 agents/news_bot.py (程式碼已於先前對話中提供)。
+3. 確認執行結果：確保能印出新聞標題。
+4. 回報進度：完成後，將 Day 1 的輸出截圖或文字貼到對話中，我們再繼續 Day 2。
+
+---
+
+這是最終版執行計畫。不再新增功能、不再討論架構。目標只有一個：把這 5 個勾打滿。
+
+開始執行吧。🔥
+<!-- 在 Dashboard 區塊中新增 -->
+<div class="glass rounded-3xl p-6 mt-8 border border-white/10">
+    <div class="flex items-center gap-x-3">
+        <i class="fa-solid fa-circle text-emerald-400 text-xs"></i>
+        <span class="text-sm font-semibold text-white/70">最新播報狀態</span>
+        <span class="text-xs text-white/40" id="broadcast-time">--</span>
+    </div>
+    <div class="mt-3">
+        <div class="text-lg font-bold text-white" id="broadcast-headline">等待首次播報...</div>
+        <div class="text-sm text-white/50 mt-1 line-clamp-2" id="broadcast-script"></div>
+        <div class="mt-4 flex items-center gap-x-4">
+            <button onclick="playAudio()" class="text-sm px-4 py-2 rounded-2xl bg-white/10 hover:bg-white/20 transition-colors">
+                <i class="fa-solid fa-play mr-2"></i>播放音檔
+            </button>
+            <span class="text-xs text-white/40" id="audio-path"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+// 讀取最新播報狀態 (可改為 fetch API)
+function loadLatestBroadcast() {
+    fetch('/storage/latest_broadcast.json')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('broadcast-time').innerText = data.timestamp;
+            document.getElementById('broadcast-headline').innerText = data.headlines?.join('、') || '無標題';
+            document.getElementById('broadcast-script').innerText = data.script?.slice(0, 100) + '...' || '';
+            document.getElementById('audio-path').innerText = data.audio_path || '';
+            // 儲存音檔路徑供播放按鈕使用
+            window.currentAudioPath = data.audio_path;
+        })
+        .catch(() => {
+            document.getElementById('broadcast-headline').innerText = '⚠️ 尚無播報資料，請執行 Pipeline';
+        });
+}
+
+function playAudio() {
+    if (window.currentAudioPath) {
+        const audio = new Audio(window.currentAudioPath);
+        audio.play();
+    } else {
+        alert('尚無音檔可播放');
+    }
+}
+
+// 定時更新 (每 30 秒)
+setInterval(loadLatestBroadcast, 30000);
+loadLatestBroadcast();
+</script>
