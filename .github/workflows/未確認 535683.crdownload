@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""
+Lightning-ALL Daemon with HTTP Trigger
+支援 Webhook / GitHub Actions 觸發，並正確回傳 HTTP 200
+"""
+
+import os
+import json
+import time
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from datetime import datetime
+import psutil
+import sqlite3
+
+from executor import execute_container_logic
+
+DB_PATH = "lightning_logs.db"
+PORT = int(os.getenv("DAEMON_PORT", 8765))
+
+def log_event(event: str, status: str, detail: str = "", container: str = ""):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""
+        INSERT INTO repair_logs (timestamp, event, status, detail, container)
+        VALUES (?, ?, ?, ?, ?)
+    """, (datetime.now().isoformat(), event, status, detail, container))
+    conn.commit()
+    conn.close()
+
+class DaemonHandler(BaseHTTPRequestHandler):
+    def _send_json(self, data: dict, status_code: int = 200):
+        self.send_response(status_code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(json.dumps(data, ensure_ascii=False).encode("utf-8"))
+
+    def do_GET(self):
+        if self.path == "/health":
+            self._send_json({
+                "status": "ok",
+                "code": 200,
+                "timestamp": datetime.now().isoformat(),
+                "uptime": "running"
+            })
+        elif self.path == "/status":
+            cpu = psutil.cpu_percent()
+            mem = psutil.virtual_memory().percent
+            self._send_json({
+                "status": "success",
+                "code": 200,
+                "cpu": cpu,
+                "memory": mem,
+                "timestamp": datetime.now().isoformat()
+            })
+        else:
+            self._send_json({"error": "Not found", "code": 404}, 404)
+
+    def do_POST(self):
+        content_length = int(self.headers.get('Content-Length', 0))
+        post_data = self.rfile.read(content_length).decode('utf-8')
+
+        try:
+            data = json.loads(post_data) if post_data else {}
+        except:
+            data = {}
+
+        container = data.get("container", "repair.sc")
+        prompt = data.get("prompt", "")
+
+        if self.path == "/trigger":
+            log_event("Webhook Trigger", "RECEIVED", f"container={container}", container)
+            
+            try:
+                result = execute_container_logic(container, prompt)
+                log_event("Execution", "SUCCESS", result, container)
+                
+                self._send_json({
+                    "status": "success",
+                    "code": 200,
+                    "container": container,
+                    "result": result,
+                    "timestamp": datetime.now().isoformat()
+                })
+            except Exception as e:
+                log_event("Execution", "FAILED", str(e), container)
+                self._send_json({
+                    "status": "error",
+                    "code": 500,
+                    "message": str(e)
+                }, 500)
+        else:
+            self._send_json({"error": "Unknown endpoint", "code": 404}, 404)
+
+    def log_message(self, format, *args):
+        # 減少預設 log 噪音
+        pass
+
+def run_http_server():
+    server_address = ('0.0.0.0', PORT)
+    httpd = HTTPServer(server_address, DaemonHandler)
+    print(f"🚀 Lightning-ALL Daemon HTTP 已啟動")
+    print(f"   Listening on http://0.0.0.0:{PORT}")
+    print(f"   Endpoints:")
+    print(f"     GET  /health")
+    print(f"     GET  /status")
+    print(f"     POST /trigger   (body: {{\"container\": \"repair.sc\", \"prompt\": \"...\"}})")
+    httpd.serve_forever()
+
+if __name__ == "__main__":
+    # 背景執行健康監控（可選）
+    def background_monitor():
+        while True:
+            time.sleep(120)  # 每 2 分鐘檢查一次
+            # 這裡可以加入自動修復邏輯
+            pass
+
+    threading.Thread(target=background_monitor, daemon=True).start()
+    run_http_server()

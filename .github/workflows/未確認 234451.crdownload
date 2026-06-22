@@ -1,0 +1,88 @@
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+from models.broadcast import PipelineStatus
+from services.rss_service import RSSService
+from services.llm_service import LLMService
+from services.tts_service import TTSService
+from config import SUPPORTED_LANGUAGES
+import uuid
+from datetime import datetime
+import json
+import os
+from storage import NEWS_DIR, SCRIPTS_DIR, AUDIO_DIR
+
+router = APIRouter(prefix="/api/news", tags=["news"])
+
+# 暫存 Pipeline 狀態（正式用 Redis 或 DB）
+pipeline_store = {}
+
+def run_pipeline_task(pipeline_id: str, lang: str):
+    """背景執行 Pipeline"""
+    try:
+        pipeline_store[pipeline_id]["status"] = "running"
+        pipeline_store[pipeline_id]["progress"] = 0.2
+        pipeline_store[pipeline_id]["updated_at"] = datetime.now()
+
+        # 1. 抓取新聞
+        news_list = RSSService.fetch_news(lang, limit=3)
+        pipeline_store[pipeline_id]["progress"] = 0.5
+
+        # 2. 生成主播稿
+        script = LLMService.generate_script(lang, news_list)
+        pipeline_store[pipeline_id]["progress"] = 0.75
+
+        # 3. TTS 合成
+        audio_path = TTSService.synthesize(lang, script)
+        pipeline_store[pipeline_id]["progress"] = 1.0
+
+        # 4. 儲存結果
+        result = {
+            "language": lang,
+            "headlines": [n["headline"] for n in news_list],
+            "script": script,
+            "audio_path": audio_path
+        }
+        pipeline_store[pipeline_id]["status"] = "completed"
+        pipeline_store[pipeline_id]["result"] = result
+
+        # 寫入最新播報檔案
+        with open(SCRIPTS_DIR / f"latest_{lang}.json", "w", encoding="utf-8") as f:
+            json.dump(result, f, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        pipeline_store[pipeline_id]["status"] = "failed"
+        pipeline_store[pipeline_id]["error"] = str(e)
+    finally:
+        pipeline_store[pipeline_id]["updated_at"] = datetime.now()
+
+@router.post("/run")
+def run_pipeline(background_tasks: BackgroundTasks, lang: str = "zh"):
+    if lang not in SUPPORTED_LANGUAGES:
+        raise HTTPException(status_code=400, detail=f"不支援的語言：{lang}")
+    pipeline_id = str(uuid.uuid4())
+    pipeline_store[pipeline_id] = {
+        "pipeline_id": pipeline_id,
+        "status": "pending",
+        "progress": 0.0,
+        "result": None,
+        "error": None,
+        "created_at": datetime.now(),
+        "updated_at": datetime.now()
+    }
+    background_tasks.add_task(run_pipeline_task, pipeline_id, lang)
+    return {"pipeline_id": pipeline_id, "status": "pending", "message": "Pipeline 已啟動"}
+
+@router.get("/status/{pipeline_id}")
+def get_status(pipeline_id: str):
+    status = pipeline_store.get(pipeline_id)
+    if not status:
+        raise HTTPException(status_code=404, detail="Pipeline ID 不存在")
+    return status
+
+@router.get("/latest")
+def get_latest(lang: str = "zh"):
+    """取得最新一則已完成的新聞播報"""
+    filepath = SCRIPTS_DIR / f"latest_{lang}.json"
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail=f"尚無 {lang} 語言的播報記錄")
+    with open(filepath, "r", encoding="utf-8") as f:
+        return json.load(f)

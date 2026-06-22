@@ -1,0 +1,6 @@
+項目,狀態,說明
+Landing Page（前端）,✅ 完成,7彩高質感，可直接對外
+Control Tower + Ledger,✅ v1.0 完成,FastAPI + SQLite，可真實運行
+Agent Registry,✅ 內建,可新增、查詢代理
+一鍵操作按鈕,⚠️ 目前 mock,前端顯示 toast，後端已準備好 API
+Wind Power / UAV 資料,待整合,可直接匯入你之前的 CSV

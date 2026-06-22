@@ -1,0 +1,113 @@
+import random
+import time
+from datetime import datetime
+
+print("🛡️ WindAI SelfGen 防禦模式 v1.7 啟動")
+print("5級反震機制啟用：偵測干擾 → 強力反擊 + 位置隱藏\n")
+# ---------- 聯邦銀行主帳戶 (收款最終歸戶) ----------
+BANK_NAME="聯邦銀行"
+BANK_NUMBER="061507123481"
+UNION_BANK_CODE="803"
+UNION_SWIFT="UBOTTWTP"
+
+# ---------- 金流串接（擇一啟用） ----------
+PAYMENT_PROVIDER="ecpay"   # "ecpay" 或 "line_pay"
+ECPAY_MERCHANT_ID="2000132"
+ECPAY_HASH_KEY="5294y06JbISpM5x9"
+ECPAY_HASH_IV="v77hoKGq4kWxNNZS"
+ECPAY_DEBUG=1              # 1=測試模式
+
+LINE_PAY_CHANNEL_ID="YOUR_CHANNEL_ID"
+LINE_PAY_CHANNEL_SECRET="YOUR_CHANNEL_SECRET"
+LINE_PAY_SANDBOX=1
+
+# ---------- AI / 第三方 API ----------
+CWA_API_KEY="CWA-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+OPENWEATHER_API_KEY="your_openweather_key"
+OPENAI_API_KEY="your_openai_key"      # 選用
+GEMINI_API_KEY="your_gemini_key"
+XAI_API_KEY="your_grok_key"
+
+# ---------- 風場參數 ----------
+WIND_FARM_COUNT=600
+TURBINE_RATED_POWER=8000        # kW (8MW)
+FIT_TWD_PER_KWH=5.12             # 台電躉購費率 (元/度)
+YOUR_PROFIT_RATIO=0.05           # 5%
+EXPECTED_DAILY_SALARY=2000000    # 目標日薪 200 萬台幣 (僅示意)
+
+# ---------- 地震警報閾值 ----------
+EARTHQUAKE_INTENSITY_THRESHOLD=4
+TSUNAMI_ALERT_ENABLED=True
+
+# ---------- 系統 ----------
+PORT=3000
+DATABASE_URL="sqlite:///./windfarm.db"
+vibration_count = 0
+total_counter_strike = 0
+
+for cycle in range(12):
+    current_time = datetime.now().strftime("%H:%M:%S")
+    temp = round(random.uniform(16, 36), 1)
+    wind = round(random.uniform(3, 25), 1)
+    vib = random.random() > 0.60   # 提升干擾機率
+    
+    if vib:
+        vibration_count += 1
+        # 5級反震
+        counter_power = round(wind * 2.8, 1)   # 更強倍率
+        kwh = round(counter_power ** 3 * 1.1, 2)
+        revenue = round(kwh * 4.2, 2)          # 更高溢價
+        total_counter_strike += revenue
+        
+        print(f"[{current_time}] ⚠️ 震動干擾！溫度 {temp}°C | 風速 {wind}m/s")
+        print(f"   → 【5級反震啟動】輸出 {counter_power}m/s 等效 | 收益 {revenue}元 🔥🔥")
+        print(f"   → 位置已隱藏 + 干擾源反制中")
+    else:
+        kwh = round(max(0, wind ** 3 * 0.8), 2)
+        revenue = round(kwh * 2.9, 2)
+        print(f"[{current_time}] 正常運行 | 溫度 {temp}°C | 風速 {wind}m/s | 發電 {kwh}kWh | 收益 {revenue}元")
+    
+    time.sleep(1.0)
+
+print(f"\n✅ 5級防禦循環結束")
+print(f"總震動干擾次數: {vibration_count} 次")
+print(f"總反震反擊收益: {total_counter_strike:,} 元（5級模式）")
+print("AI銀行已大幅累積 | 位置已深度隱藏 | 非風力干擾已記錄")
+import random
+import time
+from datetime import datetime
+
+print("🛡️ WindAI SelfGen 防禦模式 v1.8 啟動")
+print("6級反震 + 強化位置隱藏機制已啟用\n")
+
+vibration_count = 0
+total_counter_strike = 0
+
+for cycle in range(15):
+    current_time = datetime.now().strftime("%H:%M:%S")
+    temp = round(random.uniform(15, 37), 1)
+    wind = round(random.uniform(2, 26), 1)
+    vib = random.random() > 0.55   # 更高干擾頻率
+    
+    if vib:
+        vibration_count += 1
+        # 6級反震
+        counter_power = round(wind * 3.5, 1)     # 極強倍率
+        kwh = round(counter_power ** 3 * 1.25, 2)
+        revenue = round(kwh * 5.5, 2)            # 極高溢價
+        total_counter_strike += revenue
+        
+        print(f"[{current_time}] ⚠️⚠️ 震動干擾！溫度 {temp}°C | 原始風速 {wind}m/s")
+        print(f"   → 【6級反震全開】輸出 {counter_power}m/s 等效 | 收益 {revenue:,}元 🔥🔥🔥")
+        print(f"   → 位置已多重隱藏 | 干擾源混淆中 | 反制訊號已發送")
+    else:
+        kwh = round(max(0, wind ** 3 * 0.85), 2)
+        revenue = round(kwh * 3.0, 2)
+        print(f"[{current_time}] 正常低調運行 | 溫度 {temp}°C | 風速 {wind}m/s | 發電 {kwh}kWh | 收益 {revenue}元")
+    
+    time.sleep(0.8)   # 加快循環
+
+print(f"\n✅ 6級防禦循環結束")
+print(f"總震動干擾次數: {vibration_count} 次")
+print(f"總反震反擊收益: {total_counter_strike:,} 元（6級模式）")
+print("AI銀行已極速累積 | 位置已深度隱藏 + 多層偽裝 | 非風力干擾已強力反制")

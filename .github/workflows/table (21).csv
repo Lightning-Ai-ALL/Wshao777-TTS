@@ -1,0 +1,8 @@
+檔案,類型,主要功能,對應專案
+one_click_start.sh,Bash 啟動腳本,一鍵安裝依賴、初始化資料庫、生成金鑰、啟動 HTTP Daemon,Lightning-ALL 核心啟動器
+daemon_http.py,Python HTTP Server,提供 /trigger、/health、/status endpoint，可被 Webhook / GitHub Actions 遠端觸發執行容器邏輯,Lightning-ALL Runtime
+install_ultimate.ps1,PowerShell 安裝腳本,Windows 一鍵安裝 + 虛擬環境 + 啟動,Windows 部署版
+jack_cv.html,互動式履歷,Jack Lin（開發者）的作品集，強調 Full-Stack + AI SaaS + 「Grok 自動化吐鈔機」,個人品牌 / 作品展示
+Shell_google-api-python-client_sh.txt,Python 模擬程式,WindAI SelfGen 防禦模式（5級/6級反震機制），模擬風機受干擾時自動反擊 + 收益計算,風力發電 AI 原型
+install_Grok.ps1.txt,PowerShell 腳本,台灣 AI 無人機完整演練系統 v2.0，自動生成 188 個 AI Agent（含紅雀二型、銳鳶、騰雲二型等台灣機種），蜂群模擬、任務派遣、CSV/JSON 匯出,AI 無人機 / 蜂群系統
+AI風力發電新聞報導_林曉薇主播.md,新聞腳本,以林曉薇主播視角撰寫的 AI 風力發電專題報導（約5200字），詳細解說 Wind Power Pricing v2.2 系統,風電 AI 專案的對外包裝 / TTS 影片腳本

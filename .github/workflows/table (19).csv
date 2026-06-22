@@ -1,0 +1,4 @@
+層級,說明,狀態
+Layer 1,把 林曉薇主播新聞稿 轉成 TTS 可直接合成的乾淨文字,可立即執行
+Layer 2,在我們剛建立的 Control Tower 新增 /tts 端點,我可以立刻幫你加上
+Layer 3,讓 Landing Page 的「一鍵啟動帝國」觸發 TTS 播報新聞,可後續串接

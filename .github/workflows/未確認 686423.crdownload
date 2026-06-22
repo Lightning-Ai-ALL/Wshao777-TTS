@@ -1,0 +1,80 @@
+# =====================================================
+# Lightning-ALL + Wshao777 SaaS 終極安裝腳本 (Windows)
+# PowerShell 版本 - 一鍵安裝 + 設定 + 啟動
+# =====================================================
+
+Write-Host "🚀 Lightning-ALL 終極安裝腳本 (Windows)" -ForegroundColor Cyan
+Write-Host "===============================================" -ForegroundColor Cyan
+
+$ErrorActionPreference = "Stop"
+$ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+# 1. 檢查 Python
+Write-Host "`n[1/7] 檢查 Python 環境..." -ForegroundColor Yellow
+try {
+    $pythonVersion = python --version 2>&1
+    Write-Host "✅ 已安裝: $pythonVersion" -ForegroundColor Green
+} catch {
+    Write-Host "❌ 找不到 Python！請先安裝 Python 3.10+ 並加入 PATH" -ForegroundColor Red
+    exit 1
+}
+
+# 2. 建立虛擬環境（推薦）
+Write-Host "`n[2/7] 建立虛擬環境..." -ForegroundColor Yellow
+if (-not (Test-Path "venv")) {
+    python -m venv venv
+    Write-Host "✅ 虛擬環境已建立" -ForegroundColor Green
+} else {
+    Write-Host "虛擬環境已存在" -ForegroundColor Gray
+}
+
+# 啟動虛擬環境
+& ".\venv\Scripts\Activate.ps1"
+
+# 3. 安裝依賴
+Write-Host "`n[3/7] 安裝必要套件..." -ForegroundColor Yellow
+pip install --upgrade pip
+pip install cryptography psutil python-dotenv
+
+# 4. 初始化資料庫
+Write-Host "`n[4/7] 初始化資料庫..." -ForegroundColor Yellow
+if (Test-Path "lightning-all\init_db.py") {
+    python lightning-all\init_db.py
+} else {
+    python init_db.py
+}
+
+# 5. 生成金鑰
+Write-Host "`n[5/7] 生成 Ed25519 金鑰對..." -ForegroundColor Yellow
+if (-not (Test-Path "lightning-all\keys\private_key.pem")) {
+    python lightning-all\sign_container.py --gen-keys
+} else {
+    Write-Host "金鑰已存在，跳過生成" -ForegroundColor Gray
+}
+
+# 6. 設定環境變數（本次 session）
+Write-Host "`n[6/7] 設定環境變數..." -ForegroundColor Yellow
+$env:AI_AES_KEY = [System.Convert]::ToHexString([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+Write-Host "AI_AES_KEY 已隨機生成（本次 session 有效）" -ForegroundColor Green
+
+# 7. 啟動 Daemon
+Write-Host "`n[7/7] 準備啟動 Daemon..." -ForegroundColor Yellow
+Write-Host ""
+Write-Host "✅ 安裝完成！" -ForegroundColor Green
+Write-Host ""
+Write-Host "建議執行以下指令啟動：" -ForegroundColor Cyan
+Write-Host "  python lightning-all\runtime\daemon_http.py" -ForegroundColor White
+Write-Host ""
+Write-Host "或直接執行：" -ForegroundColor Cyan
+Write-Host "  .\one_click_start.ps1" -ForegroundColor White
+Write-Host ""
+
+# 詢問是否立即啟動
+$startNow = Read-Host "是否現在啟動 Daemon？(Y/N)"
+if ($startNow -eq "Y" -or $startNow -eq "y") {
+    if (Test-Path "lightning-all\runtime\daemon_http.py") {
+        python lightning-all\runtime\daemon_http.py
+    } else {
+        python runtime\daemon_http.py
+    }
+}
