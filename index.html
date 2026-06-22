@@ -1,0 +1,48 @@
+<!-- 最新播報狀態區塊 -->
+<div class="glass rounded-3xl p-6 mt-8 border border-white/10">
+    <div class="flex items-center gap-x-3">
+        <i class="fa-solid fa-circle text-emerald-400 text-xs"></i>
+        <span class="text-sm font-semibold text-white/70">最新播報狀態</span>
+        <span class="text-xs text-white/40" id="broadcast-time">--</span>
+    </div>
+    <div class="mt-3">
+        <div class="text-lg font-bold text-white" id="broadcast-headline">等待首次播報...</div>
+        <div class="text-sm text-white/50 mt-1 line-clamp-2" id="broadcast-script"></div>
+        <div class="mt-4 flex items-center gap-x-4">
+            <button onclick="playAudio()" class="text-sm px-4 py-2 rounded-2xl bg-white/10 hover:bg-white/20 transition-colors">
+                <i class="fa-solid fa-play mr-2"></i>播放音檔
+            </button>
+            <span class="text-xs text-white/40" id="audio-path"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+function loadLatestBroadcast() {
+    fetch('/storage/latest_broadcast.json')  // 若無法直接 fetch，可改用 API 端點
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('broadcast-time').innerText = data.timestamp || '--';
+            document.getElementById('broadcast-headline').innerText = data.headlines?.join('、') || '無標題';
+            document.getElementById('broadcast-script').innerText = data.script?.slice(0, 100) + '...' || '';
+            document.getElementById('audio-path').innerText = data.audio_path || '';
+            window.currentAudioPath = data.audio_path;
+        })
+        .catch(() => {
+            document.getElementById('broadcast-headline').innerText = '⚠️ 尚無播報資料，請執行 Pipeline';
+        });
+}
+
+function playAudio() {
+    if (window.currentAudioPath) {
+        const audio = new Audio(window.currentAudioPath);
+        audio.play();
+    } else {
+        alert('尚無音檔可播放');
+    }
+}
+
+// 初次載入與定期更新 (每 30 秒)
+loadLatestBroadcast();
+setInterval(loadLatestBroadcast, 30000);
+</script>
